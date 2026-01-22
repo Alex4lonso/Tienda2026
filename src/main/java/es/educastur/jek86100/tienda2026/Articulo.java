@@ -56,6 +56,6 @@ class Articulo {
 
     @Override
     public String toString() {
-        return "Articulo{" + "idArticulo=" + idArticulo + ", descripcion=" + descripcion + ", existencias=" + existencias + ", pvp=" + pvp + '}';
+        return "\tSeccion: "+idArticulo + " | Nombre: " + descripcion + " | Cantidad: " + existencias + " | Precio del objeto:" +" ("+ pvp + "$)";
     }
 }

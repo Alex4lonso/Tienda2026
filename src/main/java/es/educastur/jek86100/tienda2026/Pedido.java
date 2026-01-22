@@ -60,6 +60,6 @@ public class Pedido {
 
     @Override
     public String toString() {
-        return "Pedido{" + "idPedido=" + idPedido + ", clientePedido=" + clientePedido + ", fechaPedido=" + fechaPedido + ", cestacompra=" + cestacompra + '}';
+        return "\tidPedido:" + idPedido + " | Usuario: " + clientePedido + " | F.Pedido: " + fechaPedido + " | cesta: " + cestacompra;
     }
 }
