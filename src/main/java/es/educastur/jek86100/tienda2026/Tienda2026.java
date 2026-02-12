@@ -8,8 +8,11 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -32,12 +35,14 @@ public class Tienda2026 implements Serializable {
         clientes = new HashMap();
     }
 //</editor-fold>
-
     //<editor-fold defaultstate="collapsed" desc="MAIN">
+
     public static void main(String[] args) {
         Tienda2026 t2026 = new Tienda2026();
         t2026.cargaDatos();
-        t2026.menu();
+        //t2026.menu();
+        t2026.listadoStreams();
+    
 
     }
 
@@ -166,7 +171,6 @@ public class Tienda2026 implements Serializable {
         articulosAux.stream()
                 .sorted(Comparator.comparing(Articulo::getExistencias).reversed())
                 .forEach(a -> System.out.println(a));
-        
 
         System.out.println("");
         String idArticulo;
@@ -230,8 +234,8 @@ public class Tienda2026 implements Serializable {
             System.out.println(c);
         }
     }
-    //</editor-fold>
 
+    //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="MENU PEDIDOS">
     public void menuPedidos() {
         int Opcion = 0;
@@ -249,10 +253,9 @@ public class Tienda2026 implements Serializable {
                     nuevoPedido();
                     break;
                 case 2:
-                    listadoPedidos();
+                    //listadoPedidos();
                     break;
                 case 3:
-
                     break;
             }
         } while (Opcion != 9);
@@ -285,7 +288,7 @@ public class Tienda2026 implements Serializable {
     private double totalPedido(Pedido p) {
         double totalP = 0;
         for (LineaPedido lp : p.getCestacompra()) {
-            totalP += lp.getUnidades() * articulos.get(lp.getIdArticulo()).getPvp();
+            totalP += lp.getUnidades() * lp.getIdArticulo().getPvp();
         }
         return totalP;
     }
@@ -313,7 +316,7 @@ public class Tienda2026 implements Serializable {
 
             try {
                 stock(idArticulo, unidades);
-                cestaCompra.add(new LineaPedido(idArticulo, unidades));
+                cestaCompra.add(new LineaPedido(articulos.get(idArticulo), unidades));
             } catch (StockCero ex) {
                 System.out.println(ex.getMessage());
             } catch (StockInsuficiente ex) {
@@ -321,7 +324,7 @@ public class Tienda2026 implements Serializable {
                 System.out.println("Las quieres (SI/NO)");
                 String respuesta = sc.next();
                 if (respuesta.equalsIgnoreCase("SI")) {
-                    cestaCompra.add(new LineaPedido(idArticulo, articulos.get(idArticulo).getExistencias()));
+                    cestaCompra.add(new LineaPedido(articulos.get(idArticulo), articulos.get(idArticulo).getExistencias()));
                 }
             }
             System.out.print("\nTecle el ID del artículo deseado (FIN para terminar la compra)");
@@ -334,11 +337,11 @@ public class Tienda2026 implements Serializable {
             System.out.println("Este es tu pedido");
             for (LineaPedido l : cestaCompra) {
 
-                double precioLinea = articulos.get(l.getIdArticulo()).getPvp() * l.getUnidades();
+                double precioLinea = l.getIdArticulo().getPvp();
                 totalPedido += precioLinea;
                 System.out.println(l.getIdArticulo() + " | "
-                        + articulos.get(l.getIdArticulo()).getDescripcion() + " | " + l.getUnidades()
-                        + " unidades (" + articulos.get(l.getIdArticulo()).getPvp() + "$) = " + precioLinea + "$");
+                        + l.getIdArticulo().getDescripcion() + " | " + l.getUnidades()
+                        + " unidades (" + l.getIdArticulo().getPvp() + "$) = " + precioLinea + "$");
 
             }
             System.out.println("\t\t\tTOTAL DEL PEDIDO: " + totalPedido + "$");
@@ -348,44 +351,10 @@ public class Tienda2026 implements Serializable {
                 pedidos.add(new Pedido(generaIdPedido(idCliente), clientes.get(idCliente),
                         LocalDate.now(), cestaCompra));
                 for (LineaPedido l : cestaCompra) {
-                    articulos.get(l.getIdArticulo())
-                            .setExistencias(articulos.get(l.getIdArticulo()).getExistencias() - l.getUnidades());
+                    l.getIdArticulo().setExistencias(l.getIdArticulo().getExistencias() - l.getUnidades());
                 }
             }
         }
-    }
-
-    private void listadoPedidos() {
-        System.out.println("");
-        System.out.println("Listado de pedidos sin orden:");
-        for (Pedido p : pedidos) {
-            System.out.println(p + " TOTAL DEL PEDIDO: " + totalPedido(p));
-        }
-        System.out.println("");
-        System.out.println("\n\n\nDe menor a mayor:");
-        pedidos.stream().sorted(Comparator.comparing(p -> totalPedido(p))).forEach(p -> System.out.println(p + " TOTAL DEL PEDIDO: " + totalPedido(p) + "$"));
-
-        System.out.println("");
-        System.out.println("\n\n\nDe mayor a menor");
-        pedidos.stream().sorted(Comparator.comparing(p -> totalPedido((Pedido) (p))).reversed()).forEach(p -> System.out.println(p + " TOTAL DEL PEDIDO: " + totalPedido(p) + "$"));
-
-        System.out.println("");
-        System.out.println("\n\n\nMayor de 1000$:");
-        pedidos.stream().filter(p -> totalPedido(p) > 1000).sorted(Comparator.comparing(p -> totalPedido(p))).forEach(p -> System.out.println(p + " TOTAL DEL PEDIDO: " + totalPedido(p) + "$"));
-
-        System.out.println("");
-        System.out.println("\n\n\nMenor de 1000$:");
-        pedidos.stream().filter(p -> totalPedido(p) < 1000).sorted(Comparator.comparing(p -> totalPedido(p))).forEach(p -> System.out.println(p + " TOTAL DEL PEDIDO: " + totalPedido(p) + "$"));
-
-        System.out.println("");
-        System.out.println("\n\n\nPor fecha:");
-        pedidos.stream().sorted(Comparator.comparing(Pedido::getFechaPedido)).forEach(p -> System.out.println(p + " TOTAL DEL PEDIDO: " + totalPedido(p) + "$"));
-        System.out.println("\n\n\n\tTODOS LOS PEDIDOS SUMAN UN TOTAL DE: " + pedidos.size() + " de pedidos");
-
-        System.out.println("");
-        System.out.println("\n\n\nPor fecha la mas reciente arriba:");
-        pedidos.stream().sorted(Comparator.comparing(Pedido::getFechaPedido)).forEach(p -> System.out.println(p + " TOTAL DEL PEDIDO: " + totalPedido(p) + "$"));
-        System.out.println("\n\n\n\tTODOS LOS PEDIDOS SUMAN UN TOTAL DE: " + pedidos.size() + " de pedidos");
     }
 
     //</editor-fold>
@@ -396,23 +365,111 @@ public class Tienda2026 implements Serializable {
         clientes.put("63921307Y", new Cliente("63921307Y", "JUAN", "652333333", "juan@gmail.com"));
         clientes.put("02337565Y", new Cliente("02337565Y", "EDU", "634567890", "edu@gmail.com"));
 
-        articulos.put("1-11", new Articulo("1-11", "RATON LOGITECH ST ", 14, 15));
-        articulos.put("1-22", new Articulo("1-22", "TECLADO STANDARD  ", 9, 18));
-        articulos.put("2-11", new Articulo("2-11", "HDD SEAGATE 1 TB  ", 16, 80));
+        articulos.put("1-11", new Articulo("1-11", "RATON LOGITECH ST ", 0, 15));
+        articulos.put("1-22", new Articulo("1-22", "TECLADO STANDARD  ", 5, 18));
+        articulos.put("2-11", new Articulo("2-11", "HDD SEAGATE 1 TB  ", 15, 80));
         articulos.put("2-22", new Articulo("2-22", "SSD KINGSTOM 256GB", 9, 70));
         articulos.put("2-33", new Articulo("2-33", "SSD KINGSTOM 512GB", 0, 200));
+        articulos.put("3-11", new Articulo("3-11", "HP LASERJET HP800 ", 2, 200));
         articulos.put("3-22", new Articulo("3-22", "EPSON PRINT XP300 ", 5, 80));
         articulos.put("4-11", new Articulo("4-11", "ASUS  MONITOR  22 ", 5, 100));
         articulos.put("4-22", new Articulo("4-22", "HP MONITOR LED 28 ", 5, 180));
         articulos.put("4-33", new Articulo("4-33", "SAMSUNG ODISSEY G5", 12, 580));
 
         LocalDate hoy = LocalDate.now();
-        pedidos.add(new Pedido("80580845T-001/2025", clientes.get("80580845T"), hoy.minusDays(1), new ArrayList<>(List.of(new LineaPedido("1-11", 3), new LineaPedido("4-22", 3)))));
-        pedidos.add(new Pedido("80580845T-002/2025", clientes.get("80580845T"), hoy.minusDays(2), new ArrayList<>(List.of(new LineaPedido("4-11", 3), new LineaPedido("4-22", 2), new LineaPedido("4-33", 4)))));
-        pedidos.add(new Pedido("36347775R-001/2025", clientes.get("36347775R"), hoy.minusDays(3), new ArrayList<>(List.of(new LineaPedido("4-22", 1), new LineaPedido("2-22", 3)))));
-        pedidos.add(new Pedido("36347775R-002/2025", clientes.get("36347775R"), hoy.minusDays(5), new ArrayList<>(List.of(new LineaPedido("4-33", 3), new LineaPedido("2-11", 3)))));
-        pedidos.add(new Pedido("63921307Y-001/2025", clientes.get("63921307Y"), hoy.minusDays(4), new ArrayList<>(List.of(new LineaPedido("2-11", 5), new LineaPedido("2-33", 3), new LineaPedido("4-33", 2)))));
+        pedidos.add(new Pedido("80580845T-001/2025", clientes.get("80580845T"), hoy.minusDays(1), new ArrayList<LineaPedido>(List.of(new LineaPedido(articulos.get("1-11"), 3), new LineaPedido(articulos.get("4-22"), 3)))));
+        pedidos.add(new Pedido("80580845T-002/2025", clientes.get("80580845T"), hoy.minusDays(2), new ArrayList<LineaPedido>(List.of(new LineaPedido(articulos.get("4-11"), 3), new LineaPedido(articulos.get("4-22"), 2), new LineaPedido(articulos.get("4-33"), 4)))));
+        pedidos.add(new Pedido("36347775R-001/2025", clientes.get("36347775R"), hoy.minusDays(3), new ArrayList<LineaPedido>(List.of(new LineaPedido(articulos.get("4-22"), 1), new LineaPedido(articulos.get("2-22"), 3)))));
+        pedidos.add(new Pedido("36347775R-002/2025", clientes.get("36347775R"), hoy.minusDays(5), new ArrayList<LineaPedido>(List.of(new LineaPedido(articulos.get("4-33"), 3), new LineaPedido(articulos.get("2-11"), 3)))));
+        pedidos.add(new Pedido("63921307Y-001/2025", clientes.get("63921307Y"), hoy.minusDays(4), new ArrayList<LineaPedido>(List.of(new LineaPedido(articulos.get("2-11"), 5), new LineaPedido(articulos.get("2-33"), 3), new LineaPedido(articulos.get("4-33"), 2)))));
     }
 //</editor-fold>
+
+    private void listadoStreams() {
+        //GRUESO
+        //CONTABILIZAR LOS PEDIDOS DE UN DETERMINADO CLIENTE
+        long numPedidos = pedidos.stream()
+                .filter(p -> p.getClientePedido().getIdCliente().equalsIgnoreCase("80580845T"))
+                .count();
+        System.out.println("\n" + numPedidos + "\n");
+
+        //CONTABILIZAR CUANTOS PEDIDOS HAY POR CLIENTE - PARA LAS AGRUPACIONES SON IDEALOS LOS MAP
+        Map<Cliente, Long> numPedidosPorCliente
+                = pedidos.stream().collect(Collectors.groupingBy(Pedido::getClientePedido, Collectors.counting()));
+        System.out.println("\n" + numPedidosPorCliente + "\n");
+        //ESTO ES PARA MOSTRAR EL RESULTADO
+        for (Cliente c : numPedidosPorCliente.keySet()) {
+            System.out.println(c + " - " + numPedidosPorCliente.get(c));
+        }
+        //LAS FUNCIONES TIPO count() counting()
+
+        //PROBAMOS CON EL ARTICULO ARTICULOS.GET("4-22") - HACERLO DESPUES PARA TODOS
+        System.err.println("\n");
+        for (Cliente c : clientes.values()) {
+            int unidades = pedidos.stream().filter(p -> p.getClientePedido().equals(c))
+                    .flatMap(p -> p.getCestacompra().stream()).filter(l -> l.getIdArticulo().equals(articulos.get("4-22")))
+                    .mapToInt(LineaPedido::getUnidades).sum();
+
+            System.out.println(c.getNombre() + " - " + unidades + " de " + articulos.get("4-22").getDescripcion());
+
+        }
+
+    }
+
+    //TOTAL DE UNIDADES VENDIDAS DE UN ARTICULO EN TODOS LOS PEDIDOS
+    //ESTAS TRES COSAS SON LAS MISMAS COSAS, SOLO QUE HAY ALGUNAS MEJOR RESUMIDAS Y MEJORES POR ESTAR EN 1 LINEA
+    private int uniVendArticulo2(Articulo a) {
+        int total = 0;
+        for (Pedido p : pedidos) {
+            for (LineaPedido lp : p.getCestacompra()) {
+                if (lp.getIdArticulo().getIdArticulo().equals(a.getIdArticulo())) {
+                    total += lp.getUnidades();
+                }
+            }
+        }
+        return total;
+    }
+
+    /*Unidades vendidas1 es programacion tradicional,
+    con bucles for anidados, y es mas dificil de leer, ademas de ser mas propensa a errores,
+    ya que tenemos que estar pendientes de los indices de los bucles,
+    y de las condiciones de los bucles, etc.*/
+    private int unidadesVendidas1(Articulo a) {
+        int c = 0;
+        for (Pedido p : pedidos) {
+            for (LineaPedido l : p.getCestacompra()) {
+                if (l.getIdArticulo().equals(a)) {
+                    c += l.getUnidades();
+                }
+            }
+        }
+        return c;
+    }
+
+    //ESTO ES LO MISMO PERO CON STREAMS, EN UNA SOLA LINEA, Y MUCHO MAS LEGIBLE
+    /*Version programacion funcional con flatmap, filter para aplanar los streams y mapToInt, es mucho mas legible,
+    y ademas es mas facil de escribir, ya que no tenemos que preocuparnos por los indices de los bucles,
+    ni por las condiciones de los bucles, etc.*/
+
+/*Flatmap te permite dar el salto cuando una coleccion tiene dentro otra coleccion, 
+    como es el caso de los pedidos que tienen dentro una lista de LineaPedido. 
+    Con el flatmap lo que hacemos es coger cada pedido y convertirlo en un stream de LineaPedido, 
+    con lo cual al final tenemos un stream de LineaPedido y ya podemos hacer las operaciones que queramos sobre ese stream.
+    Son basicamente como hacer bucles anidados de toda la vida.*/
+    private int unidadesVendidas2(Articulo a) {
+        int total = 0;
+        for (Pedido p : pedidos) {
+            total += p.getCestacompra().stream().filter(l -> l.getIdArticulo().equals(a)).mapToInt(LineaPedido::getUnidades).sum();
+        }
+        return total;
+    }
+
+    private int unidadesVendidas3(Articulo a) {
+        return pedidos.stream().flatMap(p -> p.getCestacompra().stream()).filter(l -> l.getIdArticulo().equals(a)).mapToInt(LineaPedido::getUnidades).sum();
+    }
+
+    private int unidadesVendidas4(Articulo a) {
+        return pedidos.stream().flatMap(p -> p.getCestacompra().stream()).filter(l -> l.getIdArticulo().equals(a)).collect(Collectors.summingInt(LineaPedido::getUnidades));
+    }
 
 }
