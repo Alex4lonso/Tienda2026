@@ -3,8 +3,10 @@
  */
 package es.educastur.jek86100.tienda2026;
 
+import es.educastur.jek86100.tienda2026.MetodosAux;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -41,8 +43,7 @@ public class Tienda2026 implements Serializable {
         Tienda2026 t2026 = new Tienda2026();
         t2026.cargaDatos();
         //t2026.menu();
-        t2026.listadoStreams();
-    
+        t2026.cuatro();
 
     }
 
@@ -384,6 +385,7 @@ public class Tienda2026 implements Serializable {
         pedidos.add(new Pedido("63921307Y-001/2025", clientes.get("63921307Y"), hoy.minusDays(4), new ArrayList<LineaPedido>(List.of(new LineaPedido(articulos.get("2-11"), 5), new LineaPedido(articulos.get("2-33"), 3), new LineaPedido(articulos.get("4-33"), 2)))));
     }
 //</editor-fold>
+    //<editor-fold defaultstate="collapsed" desc="EJERCICIOS">
 
     private void listadoStreams() {
         //GRUESO
@@ -403,6 +405,7 @@ public class Tienda2026 implements Serializable {
         }
         //LAS FUNCIONES TIPO count() counting()
 
+        //EJERCICIO CON FLATMAP
         //PROBAMOS CON EL ARTICULO ARTICULOS.GET("4-22") - HACERLO DESPUES PARA TODOS
         System.err.println("\n");
         for (Cliente c : clientes.values()) {
@@ -451,7 +454,7 @@ public class Tienda2026 implements Serializable {
     y ademas es mas facil de escribir, ya que no tenemos que preocuparnos por los indices de los bucles,
     ni por las condiciones de los bucles, etc.*/
 
-/*Flatmap te permite dar el salto cuando una coleccion tiene dentro otra coleccion, 
+ /*Flatmap te permite dar el salto cuando una coleccion tiene dentro otra coleccion, 
     como es el caso de los pedidos que tienen dentro una lista de LineaPedido. 
     Con el flatmap lo que hacemos es coger cada pedido y convertirlo en un stream de LineaPedido, 
     con lo cual al final tenemos un stream de LineaPedido y ya podemos hacer las operaciones que queramos sobre ese stream.
@@ -472,4 +475,140 @@ public class Tienda2026 implements Serializable {
         return pedidos.stream().flatMap(p -> p.getCestacompra().stream()).filter(l -> l.getIdArticulo().equals(a)).collect(Collectors.summingInt(LineaPedido::getUnidades));
     }
 
+//</editor-fold>
+    //<editor-fold defaultstate="collapsed" desc="EJERCICIOS2">
+    //EJERCICIOS 2:
+    /*private void listadosStreams2() {
+        //Ordenados de menor a mayor
+        System.out.println("Listados ordenados de menos de 100 de menor a mayor");
+        articulos.values().stream()
+                .filter(a -> a.getPvp() < 100)
+                .sorted(Comparator.comparing(Articulo::getPvp))
+                .forEach(a -> System.out.println(a));
+        System.out.println("Listados ordenados de mas de 100 de menor a mayor");
+        articulos.values().stream()
+                .filter(a -> a.getPvp() > 100)
+                .sorted(Comparator.comparing(Articulo::getPvp))
+                .forEach(a -> System.out.println(a));
+        System.out.println("Listados de todos los articulos de menor a mayor precio");
+        articulos.values().stream()
+                .sorted(Comparator.comparing(Articulo::getPvp))
+                .forEach(a -> System.out.println(a));
+        System.out.println();
+        System.out.println("Pedidos ordenados por importe total del pedido de menor a mayor");
+        pedidos.stream().sorted(Comparator.comparing(p -> totalPedido(p)))
+                .forEach(p -> System.out.println(p + "- Total: " + totalPedido(p)));
+        //pedidos ordenados por importe total del pedido de mayor a menor
+        System.out.println("Pedidos ordenados por importe total del pedido de mayor a menor");
+        pedidos.stream().sorted(Comparator.comparing(p -> totalPedido((Pedido) p)).reversed())
+                .forEach(p -> System.out.println(p + "- Total: " + totalPedido(p)));
+        System.out.println();
+        //pedidos de mas de 1000 ordenados por fecha de menor a mayor
+        System.out.println("Pedidos de mas de 1000 ordenados por fecha de menor a mayor");
+        pedidos.stream().filter(p -> totalPedido(p) > 1000)
+                .sorted(Comparator.comparing(Pedido::getFechaPedido))
+                .forEach(p -> System.out.println(p + " -Total: " + p.getFechaPedido()));
+        System.out.println("Pedidos de mas de 1000 ordenados por fecha de mayor a menor");
+        pedidos.stream().filter(p -> totalPedido(p) > 1000)
+                .sorted(Comparator.comparing(Pedido::getFechaPedido).reversed())
+                .forEach(p -> System.out.println(p + " -Total: " + p.getFechaPedido()));
+        System.out.println();
+        //pedidos ordenados por fecha
+        System.out.println("Pedidos ordenados por la fecha de menor a mayor");
+        pedidos.stream().sorted(Comparator.comparing(Pedido::getFechaPedido)).forEach(p -> System.out.println(p + " -Total: " + p.getFechaPedido()));
+        System.out.println("Pedidos ordenados por la fecha de mayor a menor");
+        pedidos.stream().sorted(Comparator.comparing(Pedido::getFechaPedido).reversed()).forEach(p -> System.out.println(p + " -Total: " + p.getFechaPedido()));
+        System.out.println();
+        //Para realizar calculos count() map() mapToInt() .collect(Collectors.groupinBy)
+        //Contabilizar pedidos de un X cliente poniendo su ID, tambien se puede por nombre que seria mas facil
+        String id;
+        System.out.println("Inserte el  ID del usuario:");
+        id = sc.next();
+        long numPedidos = pedidos.stream()
+                .filter(p -> p.getClientePedido().getIdCliente().equalsIgnoreCase(id))
+                .count();
+
+        String nombre = pedidos.stream() //Busca el nombre del cliente para ponerlo al final en vez del ID, busca por el ID puesto antes. Esto lo que hace es contener dos datos
+                .filter(p -> p.getClientePedido().getIdCliente().equalsIgnoreCase(id))
+                .map(p -> p.getClientePedido().getNombre())
+                .findFirst()
+                .orElse("El cliente no ha sido encontrado");
+
+        System.out.println("\n El numero de pedidos de " + nombre + " es de: " + numPedidos + "\n");
+        //LAS FUNCIONES TIPO count() counting() almacenan resultados en variables de tipo long 
+        System.out.println();
+        //Contabilizar cuantos pedidos hay por cliente  
+        Map<Cliente, Long> numPedidosPorCliente=
+                pedidos.stream()
+                .collect(Collectors.groupingBy(Pedido::getClientePedido,Collectors.counting()));
+        for (Cliente c:numPedidosPorCliente.keySet()) {
+            System.out.println(c + " - " + numPedidosPorCliente.get(c));
+        }
+        //Total de unidades vendidas de un articulo en todos los pedidos, se puede aplicar a unidades vendidas 
+        System.out.println();
+        for(Articulo a:articulos.values()){
+            int total=0;
+            for(Pedido p:pedidos){
+                total += p.getCestacompra().stream().filter(l -> l.getIdArticulo().equals(a))
+                        .mapToInt(LineaPedido::getUnidades).sum();
+            }
+            System.out.println(a + " - " + total);
+        }
+        //EJERCICIOS Creados con flamaps  para las colecciones que esten anidadas. Pedidos al ser un arraylist de pedido y dentro de pedido hay una cestacompra que es un arryalist de lineapedido
+        
+        //Usuarios que han comprado un articulo dterminado que incluya cuantas unidades de este han sido compradas
+        //se prueba el articulo.get()
+   
+    }*/
+    //</editor-fold>
+    //EXAMEN
+    private void uno() {
+        System.out.println("Listado de los clientes ordenados de mayor a menor por su gasto:");
+        pedidos.stream().sorted(Comparator.comparing(p -> totalPedido((Pedido) p)).reversed())
+                .forEach(p -> System.out.println(p.getClientePedido() + "\t\tTotal: " + totalPedido(p)));
+    }
+
+    private void dos() {
+        System.out.println("SECCION A LISTAR:");
+        String sec = sc.next();
+
+        articulos.values().stream()
+                .filter(a -> a.getIdArticulo().startsWith(sec))
+                .forEach(a -> System.out.println(a));
+    }
+
+    private void tres() {
+        System.out.println("Articulos no vendidos:");
+        articulos.values().stream()
+                .filter(a -> unidadesVendidas3(a) == 0) //Muestra aquellos que no han sido vendidos 
+                .forEach(a -> System.out.println(a));
+    }
+
+    private void cuatro() {
+        /*LocalDate hoy = LocalDate.now();
+        double total = pedidos.stream()
+                .filter(p -> p.getFechaPedido().isAfter(hoy.minusDays(5)))
+                .flatMap(p -> p.getCestacompra().stream())
+                .mapToDouble(l -> l.getUnidades() * l.getIdArticulo().getPvp())
+                .sum();
+        System.out.println("Total facturado en la tienda en los ultimos 5 dias: " + total); //lo mismo que hacer un for anindado, muestra solamente los ultimos 5 dias facturados de la tienda*/
+
+     double total = pedidos.stream()
+           .filter(p -> p.getFechaPedido().isAfter(LocalDate.of(2026, 2, 14)) && p.getFechaPedido().isBefore(LocalDate.of(2026, 2, 19)))
+                .flatMap(p -> p.getCestacompra().stream())
+            .mapToDouble(l -> l.getUnidades() * l.getIdArticulo().getPvp())
+             .sum();
+        System.out.println("Total facturado en la tienda del " + LocalDate.of(2026, Month.MARCH, 14) + " hasta el " + LocalDate.of(2026, Month.MARCH, 19) + " es de un total de:"   + total);
+
+
+
+    }
+
+    private void cinco() {
+        double total = pedidos.stream().mapToDouble(p -> totalPedido(p))
+                .average() //Calculo del promedio, puede contener un double o nada
+                .orElse(0); //Esto le da un valor por defecto si no hay pedidos
+        System.out.println("Importe medio de la tienda: " + total);
+
+    }
 }
