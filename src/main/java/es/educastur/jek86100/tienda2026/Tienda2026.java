@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 /**
@@ -35,20 +36,51 @@ public class Tienda2026 implements Serializable {
         pedidos = new ArrayList();
         articulos = new HashMap();
         clientes = new HashMap();
-    }
-//</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="MAIN">
 
+    }
+
+    public void setPedidos(ArrayList<Pedido> pedidos) {
+        this.pedidos = pedidos;
+    }
+
+    public void setArticulos(HashMap<String, Articulo> articulos) {
+        this.articulos = articulos;
+    }
+
+    public void setClientes(HashMap<String, Cliente> clientes) {
+        this.clientes = clientes;
+    }
+
+    public ArrayList<Pedido> getPedidos() {
+        return pedidos;
+    }
+
+    public HashMap<String, Articulo> getArticulos() {
+        return articulos;
+    }
+
+    public HashMap<String, Cliente> getClientes() {
+        return clientes;
+    }
+
+    //</editor-fold>
+//<editor-fold defaultstate="collapsed" desc="MAIN">
     public static void main(String[] args) {
         Tienda2026 t2026 = new Tienda2026();
         t2026.cargaDatos();
         //t2026.menu();
-        t2026.cuatro();
+        //t2026.uno();
+        // t2026.dos();
+        // t2026.tres();
+        // t2026.cuatro();
+        // t2026.cinco();
+        //t2026.listadosStreams2();
+        t2026.ejercicios3();
 
     }
 
     //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="MENU PRINCIPAL">
+//<editor-fold defaultstate="collapsed" desc="MENU PRINCIPAL">
     public void menu() {
         int Opcion = 0;
         do {
@@ -78,7 +110,7 @@ public class Tienda2026 implements Serializable {
     }
 
     //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="MENU ARTICULOS">
+//<editor-fold defaultstate="collapsed" desc="MENU ARTICULOS">
     public void menuArticulos() {
         int Opcion = 0;
         do {
@@ -186,7 +218,7 @@ public class Tienda2026 implements Serializable {
     }
 
     //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="MENU CLIENTES">
+//<editor-fold defaultstate="collapsed" desc="MENU CLIENTES">
     public void menuClientes() {
         int Opcion = 0;
         do {
@@ -234,10 +266,16 @@ public class Tienda2026 implements Serializable {
         for (Cliente c : clientes.values()) {
             System.out.println(c);
         }
+
+    }
+
+    public double totalCliente2(Cliente c) {
+        return pedidos.stream().filter(p -> p.getClientePedido().equals(c))
+                .mapToDouble(p -> totalPedido(p)).sum();
     }
 
     //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="MENU PEDIDOS">
+//<editor-fold defaultstate="collapsed" desc="MENU PEDIDOS">
     public void menuPedidos() {
         int Opcion = 0;
         do {
@@ -286,7 +324,7 @@ public class Tienda2026 implements Serializable {
         }
     }
 
-    private double totalPedido(Pedido p) {
+    public double totalPedido(Pedido p) {
         double totalP = 0;
         for (LineaPedido lp : p.getCestacompra()) {
             totalP += lp.getUnidades() * lp.getIdArticulo().getPvp();
@@ -359,7 +397,7 @@ public class Tienda2026 implements Serializable {
     }
 
     //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="CARGADATOS">
+//<editor-fold defaultstate="collapsed" desc="CARGADATOS">
     public void cargaDatos() {
         clientes.put("80580845T", new Cliente("80580845T", "ANA ", "658111111", "ana@gmail.com"));
         clientes.put("36347775R", new Cliente("36347775R", "LOLA", "649222222", "lola@gmail.com"));
@@ -385,7 +423,7 @@ public class Tienda2026 implements Serializable {
         pedidos.add(new Pedido("63921307Y-001/2025", clientes.get("63921307Y"), hoy.minusDays(4), new ArrayList<LineaPedido>(List.of(new LineaPedido(articulos.get("2-11"), 5), new LineaPedido(articulos.get("2-33"), 3), new LineaPedido(articulos.get("4-33"), 2)))));
     }
 //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="EJERCICIOS">
+//<editor-fold defaultstate="collapsed" desc="EJERCICIOS">
 
     private void listadoStreams() {
         //GRUESO
@@ -476,9 +514,9 @@ public class Tienda2026 implements Serializable {
     }
 
 //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="EJERCICIOS2">
+//<editor-fold defaultstate="collapsed" desc="EJERCICIOS2">
     //EJERCICIOS 2:
-    /*private void listadosStreams2() {
+    private void listadosStreams2() {
         //Ordenados de menor a mayor
         System.out.println("Listados ordenados de menos de 100 de menor a mayor");
         articulos.values().stream()
@@ -538,34 +576,129 @@ public class Tienda2026 implements Serializable {
         //LAS FUNCIONES TIPO count() counting() almacenan resultados en variables de tipo long 
         System.out.println();
         //Contabilizar cuantos pedidos hay por cliente  
-        Map<Cliente, Long> numPedidosPorCliente=
-                pedidos.stream()
-                .collect(Collectors.groupingBy(Pedido::getClientePedido,Collectors.counting()));
-        for (Cliente c:numPedidosPorCliente.keySet()) {
+        Map<Cliente, Long> numPedidosPorCliente
+                = pedidos.stream()
+                        .collect(Collectors.groupingBy(Pedido::getClientePedido, Collectors.counting()));
+        for (Cliente c : numPedidosPorCliente.keySet()) {
             System.out.println(c + " - " + numPedidosPorCliente.get(c));
         }
         //Total de unidades vendidas de un articulo en todos los pedidos, se puede aplicar a unidades vendidas 
         System.out.println();
-        for(Articulo a:articulos.values()){
-            int total=0;
-            for(Pedido p:pedidos){
+        for (Articulo a : articulos.values()) {
+            int total = 0;
+            for (Pedido p : pedidos) {
                 total += p.getCestacompra().stream().filter(l -> l.getIdArticulo().equals(a))
                         .mapToInt(LineaPedido::getUnidades).sum();
             }
             System.out.println(a + " - " + total);
         }
         //EJERCICIOS Creados con flamaps  para las colecciones que esten anidadas. Pedidos al ser un arraylist de pedido y dentro de pedido hay una cestacompra que es un arryalist de lineapedido
-        
+
         //Usuarios que han comprado un articulo dterminado que incluya cuantas unidades de este han sido compradas
         //se prueba el articulo.get()
-   
-    }*/
+    }
+
     //</editor-fold>
-    //EXAMEN
+//<editor-fold defaultstate="collapsed" desc="EJERCICIOS3">
+    private void ejercicios3() {
+        //Pillar coleccion pedidos y ordenar por fecha y que se almacene en otra coleccion. 
+        System.out.println("Listado de los pedidos ordenados por fecha:");
+        List<Pedido> pedidosOrdenadosPorFecha
+                = pedidos.stream()
+                        .sorted(Comparator.comparing(Pedido::getFechaPedido))
+                        .collect(Collectors.toList());
+//COMPROBACION DE RESULTADOS DE LISTA ORIGINAL Y LISTA ORDENADA DE PEDIDOS
+        pedidos.stream().forEach(p -> System.out.println(p.getIdPedido() + " | Su pedido fue creado en: " + p.getFechaPedido()));
+        System.out.println("");
+        pedidosOrdenadosPorFecha.stream().forEach(p -> System.out.println(p.getIdPedido() + " | " + p.getFechaPedido()));
+        //mapa en el que este la clave total pedido y value el pedido
+        System.out.println("\n");
+        HashMap<Double, Pedido> pedidosConTotales = new HashMap();
+        for (Pedido p : pedidos) {
+            pedidosConTotales.put(totalPedido(p), p);
+        }//Muestra la nueva coleccion
+        for (double total : pedidosConTotales.keySet()) {
+            System.out.println(pedidosConTotales.get(total).getIdPedido() + " - " + total);
+        }
+        //EJEMPLO3
+        //CREAR UN MAPA ORDENADO CON LOS CLIENTES (values) Y EL TOTAL GASTADO DE LOS CLIENTES.
+        System.out.println("\n");
+        TreeMap<Double, Cliente> ventasPorCliente = new TreeMap(); //TREEMAP TE ORDENA LA CLAVE AUTOMATICAMENTE
+        for (Cliente c : clientes.values()) {
+            ventasPorCliente.put(totalCliente2(c), c);
+        }
+        //ESTO ES PARA COMPROBAR QUE FUNCIONA
+        for (Double totCli : ventasPorCliente.descendingKeySet()) {
+            System.out.println(ventasPorCliente.get(totCli).getNombre());
+        }
+        // CREAR UNA COLECCION DE TIPO LIST CON LOS ARTICULOS DE CADA SECCION CON STREAMS y LIST
+        //CON STREAMS Y COLLECT
+        System.out.println("\n");
+        List<Articulo> Perifericos, Impresoras, almacenamiento, monitores;
+
+        Perifericos = articulos.values().stream().filter(a -> a.getIdArticulo().startsWith("1")).collect(Collectors.toList());
+        System.out.println("Articulos de la seccion Perifericos:");
+        Perifericos.stream().forEach(a -> System.out.println(a));
+
+        almacenamiento = articulos.values().stream().filter(a -> a.getIdArticulo().startsWith("2")).collect(Collectors.toList());
+        System.out.println("Articulos de la seccion almacenamiento:");
+        almacenamiento.stream().forEach(a -> System.out.println(a));
+
+        Impresoras = articulos.values().stream().filter(a -> a.getIdArticulo().startsWith("3")).collect(Collectors.toList());
+        System.out.println("Articulos de la seccion Impresoras:");
+        Impresoras.stream().forEach(a -> System.out.println(a));
+
+        monitores = articulos.values().stream().filter(a -> a.getIdArticulo().startsWith("4")).collect(Collectors.toList());
+        System.out.println("Articulos de la seccion Monitores:");
+        monitores.stream().forEach(a -> System.out.println(a));
+
+        //ESTILO CLASICO
+        System.out.println("\n");
+        for (Articulo a : articulos.values()) {
+            switch (a.getIdArticulo().charAt(0)) {
+                case '1':
+                    Perifericos.add(a);
+                    break;
+                case '2':
+                    almacenamiento.add(a);
+                    break;
+                case '3':
+                    Impresoras.add(a);
+                    break;
+                case '4':
+                    monitores.add(a);
+                    break;
+            }
+        }
+
+        System.out.println("\n" + Perifericos);
+        System.out.println("\n" + almacenamiento);
+        System.out.println("\n" + Impresoras);
+        System.out.println("\n" + monitores);
+
+        //EJEMPLO5-BORRADO DE COLECCIONES
+        //BORRAR ARTICULOS DE UNA SECCION EN CONCRETO, EN ESTE CASO DE IMPRESORAS
+        articulos.values().removeIf(a -> a.getIdArticulo().startsWith("3"));
+        System.out.println("\n");
+        articulos.values().stream()
+                .forEach(a -> System.out.println(a));
+
+        //BORRAR ARTICULOS DE MAS DE 3 DIAS DE ANTIGUEDAD
+        //Las colecciones de tipo List no admiten removeIf()
+        System.out.println("\n");
+        List<Pedido> pedidosAntiguos = pedidos.stream().filter(p -> p.getFechaPedido().isBefore(LocalDate.now().minusDays(3))).collect(Collectors.toList());
+        pedidos.removeAll(pedidosAntiguos);
+        System.out.println(pedidos);
+    }
+    //</editor-fold>
+//<editor-fold defaultstate="collapsed" desc="EXAMEN">
+//EXAMEN
+
     private void uno() {
-        System.out.println("Listado de los clientes ordenados de mayor a menor por su gasto:");
+        /*System.out.println("Listado de los clientes ordenados de mayor a menor por su gasto:");
         pedidos.stream().sorted(Comparator.comparing(p -> totalPedido((Pedido) p)).reversed())
-                .forEach(p -> System.out.println(p.getClientePedido() + "\t\tTotal: " + totalPedido(p)));
+                .forEach(p -> System.out.println(p.getClientePedido() + "\t\tTotal: " + totalPedido(p))); */
+
     }
 
     private void dos() {
@@ -593,14 +726,12 @@ public class Tienda2026 implements Serializable {
                 .sum();
         System.out.println("Total facturado en la tienda en los ultimos 5 dias: " + total); //lo mismo que hacer un for anindado, muestra solamente los ultimos 5 dias facturados de la tienda*/
 
-     double total = pedidos.stream()
-           .filter(p -> p.getFechaPedido().isAfter(LocalDate.of(2026, 2, 14)) && p.getFechaPedido().isBefore(LocalDate.of(2026, 2, 19)))
+        double total = pedidos.stream()
+                .filter(p -> p.getFechaPedido().isAfter(LocalDate.of(2026, 2, 14)) && p.getFechaPedido().isBefore(LocalDate.of(2026, 2, 19)))
                 .flatMap(p -> p.getCestacompra().stream())
-            .mapToDouble(l -> l.getUnidades() * l.getIdArticulo().getPvp())
-             .sum();
-        System.out.println("Total facturado en la tienda del " + LocalDate.of(2026, Month.MARCH, 14) + " hasta el " + LocalDate.of(2026, Month.MARCH, 19) + " es de un total de:"   + total);
-
-
+                .mapToDouble(l -> l.getUnidades() * l.getIdArticulo().getPvp())
+                .sum();
+        System.out.println("Total facturado en la tienda del " + LocalDate.of(2026, Month.MARCH, 14) + " hasta el " + LocalDate.of(2026, Month.MARCH, 19) + " es de un total de:" + total);
 
     }
 
@@ -611,4 +742,6 @@ public class Tienda2026 implements Serializable {
         System.out.println("Importe medio de la tienda: " + total);
 
     }
+    //</editor-fold>
+
 }
